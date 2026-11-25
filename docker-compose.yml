@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # 1. Main Website Frontend (Core PHP 8.2 + Apache)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gtaclip_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - APP_ENV=production
+      - APP_URL=http://localhost
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=gtaclipai
+      - MYSQL_USER=gtaclip_user
+      - MYSQL_PASSWORD=gtaclip_secure_pass
+      - AI_WORKER_URL=http://api:8000
+    volumes:
+      - web_storage:/var/www/html/storage
+      - web_backups:/var/www/html/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 2. Production Database (MariaDB 10.6)
+  db:
+    image: mariadb:10.6
+    container_name: gtaclip_db
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=gtaclip_root_pass
+      - MARIADB_DATABASE=gtaclipai
+      - MARIADB_USER=gtaclip_user
+      - MARIADB_PASSWORD=gtaclip_secure_pass
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pgtaclip_root_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Decoupled AI Backend Microservice (FastAPI)
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: gtaclip_fastapi
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=mysql+pymysql://gtaclip_user:gtaclip_secure_pass@db:3306/gtaclipai
+      - STORAGE_PATH=/app/storage
+    volumes:
+      - web_storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  web_storage:
+  web_backups:
+  db_data:

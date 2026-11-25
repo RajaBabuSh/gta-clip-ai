@@ -88,25 +88,31 @@ def root_worker_status():
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
+    frontend_url = os.environ.get("FRONTEND_URL") or os.environ.get("APP_URL")
+    if frontend_url and not request.query_params.get("raw"):
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=frontend_url, status_code=307)
+
     # If API client explicitly requests application/json, return JSON payload
     accept = request.headers.get("accept", "")
     if "application/json" in accept and "text/html" not in accept:
         return JSONResponse({
-            "project": settings.PROJECT_NAME,
+            "service": "GTA CLIP AI - Backend AI Microservice",
             "version": "1.0.0",
             "status": "operational",
+            "frontend_website": frontend_url or "Hosted separately on Core PHP (index.php)",
             "docs_url": "/docs",
             "health_url": f"{settings.API_V1_STR}/health"
         })
 
-    html_content = """<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GTA Clip AI - Production AI Gateway</title>
+  <title>GTA Clip AI - AI Backend Microservice</title>
   <style>
-    :root {
+    :root {{
       --bg: #0d0b18;
       --card: rgba(23, 20, 39, 0.85);
       --accent: #8b5cf6;
@@ -115,9 +121,9 @@ def root(request: Request):
       --muted: #94a3b8;
       --success: #10b981;
       --border: rgba(255, 255, 255, 0.08);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    }}
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: radial-gradient(circle at 80% 20%, #2a1650 0%, #0d0b18 60%);
       color: var(--text);
@@ -127,9 +133,9 @@ def root(request: Request):
       align-items: center;
       justify-content: center;
       padding: 24px;
-    }
-    .container {
-      max-width: 640px;
+    }}
+    .container {{
+      max-width: 680px;
       width: 100%;
       background: var(--card);
       border: 1px solid var(--border);
@@ -137,82 +143,101 @@ def root(request: Request):
       padding: 36px;
       backdrop-filter: blur(20px);
       box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 40px var(--accent-glow);
-    }
-    .badge {
+    }}
+    .badge {{
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: var(--success);
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #c4b5fd;
       font-size: 13px;
       font-weight: 600;
       padding: 4px 14px;
       border-radius: 999px;
       margin-bottom: 20px;
-    }
-    .badge-dot {
+    }}
+    .badge-dot {{
       width: 8px;
       height: 8px;
-      background: var(--success);
+      background: #a78bfa;
       border-radius: 50%;
       animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
-    p.subtitle { color: var(--muted); font-size: 15px; margin-bottom: 24px; line-height: 1.5; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
-    .stat-card {
+    }}
+    @keyframes pulse {{ 0%, 100% {{ opacity: 1; }} 50% {{ opacity: 0.4; }} }}
+    h1 {{ font-size: 26px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }}
+    p.subtitle {{ color: var(--muted); font-size: 14.5px; margin-bottom: 20px; line-height: 1.5; }}
+    .notice-box {{
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 13.5px;
+      color: #93c5fd;
+      line-height: 1.5;
+    }}
+    .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }}
+    .stat-card {{
       background: rgba(255,255,255,0.03);
       border: 1px solid var(--border);
       padding: 16px;
       border-radius: 12px;
-    }
-    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-    .stat-value { font-size: 15px; font-weight: 700; color: #fff; margin-top: 4px; }
-    .links { display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn {
+    }}
+    .stat-label {{ font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }}
+    .stat-value {{ font-size: 14.5px; font-weight: 700; color: #fff; margin-top: 4px; }}
+    .links {{ display: flex; gap: 12px; flex-wrap: wrap; }}
+    .btn {{
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 12px 22px;
+      padding: 12px 20px;
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
       border-radius: 10px;
       transition: all 0.2s ease;
-    }
-    .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 14px var(--accent-glow); }
-    .btn-primary:hover { background: #7c3aed; }
-    .btn-outline { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); }
-    .btn-outline:hover { background: rgba(255,255,255,0.1); }
+    }}
+    .btn-primary {{ background: var(--accent); color: white; box-shadow: 0 4px 14px var(--accent-glow); }}
+    .btn-primary:hover {{ background: #7c3aed; }}
+    .btn-outline {{ background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); }}
+    .btn-outline:hover {{ background: rgba(255,255,255,0.1); }}
+    .btn-website {{ background: #10b981; color: white; }}
+    .btn-website:hover {{ background: #059669; }}
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="badge"><div class="badge-dot"></div> Production AI Gateway Active</div>
-    <h1>GTA Clip AI Cloud Engine</h1>
-    <p class="subtitle">High-performance AI clipping microservice. Serving real-time metadata verification, highlights detection and cloud worker orchestration.</p>
+    <div class="badge"><div class="badge-dot"></div> AI Microservice Gateway</div>
+    <h1>GTA Clip AI Backend Service</h1>
+    <p class="subtitle">Decoupled AI clipping & video processing API service. The user-facing web application is powered by Core PHP + MySQL with <code>index.php</code> as entry point.</p>
+    
+    <div class="notice-box">
+      <strong>🌐 Main Website:</strong> Access the user dashboard, video upload, studio workspace, and clipping interface at your configured frontend domain: <br>
+      <a href="{frontend_url or '/'}" style="color: #60a5fa; font-weight: 600; text-decoration: underline;">{frontend_url or 'Open Local / Production Web Server (index.php)'}</a>
+    </div>
+
     <div class="grid">
       <div class="stat-card">
-        <div class="stat-label">Service Health</div>
-        <div class="stat-value" style="color:var(--success);">Operational</div>
+        <div class="stat-label">Service Role</div>
+        <div class="stat-value" style="color:var(--success);">AI API Microservice</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Runtime Engine</div>
-        <div class="stat-value">FastAPI + ASGI</div>
+        <div class="stat-value">FastAPI (ASGI)</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">API Gateway</div>
-        <div class="stat-value">/api/v1</div>
+        <div class="stat-label">API Endpoints</div>
+        <div class="stat-value">/api/v1/</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Architecture</div>
-        <div class="stat-value">Cloud Worker Queue</div>
+        <div class="stat-label">Website Entry Point</div>
+        <div class="stat-value">index.php (PHP 8.2+)</div>
       </div>
     </div>
     <div class="links">
+      {f'<a href="{frontend_url}" class="btn btn-website">🌐 Open Website Homepage</a>' if frontend_url else ''}
       <a href="/docs" class="btn btn-primary">⚡ Interactive API Docs</a>
       <a href="/api/v1/health" class="btn btn-outline">🩺 Health Diagnostic</a>
     </div>
