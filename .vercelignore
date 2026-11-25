@@ -1,0 +1,45 @@
+# ===================================================================
+# .vercelignore - Exclude heavy assets, media & data from Vercel Lambda
+# ===================================================================
+
+# Storage, user media, generated clips, raw video and audio files
+storage/
+backend/storage/
+*.mp4
+*.m4a
+*.wav
+*.part
+*.ytdl
+*.zip
+*.ass
+
+# Backups and SQL dumps
+backups/
+*.sql
+*.bak
+*.tmp
+*.log
+
+# Frontend build artifacts & dependencies (handled separately)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Python caches, virtual environments & model caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.pytest_cache/
+.coverage
+
+# Git and OS metadata
+.git/
+.gitignore
+.github/
+.DS_Store
+Thumbs.db

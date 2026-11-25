@@ -49,6 +49,45 @@ def format_clip_response(clip: Clip) -> dict:
         "created_at": clip.created_at
     }
 
+def dispatch_clipping_job(
+    background_tasks: BackgroundTasks,
+    job_id: str,
+    video_id: str,
+    target_count: int,
+    burn_subtitles: bool
+):
+    """
+    Dispatches clipping execution:
+    - If CLOUD_WORKER_URL is configured, delegates heavy video processing to the dedicated cloud GPU worker.
+    - Otherwise, executes run_clipping_pipeline locally in the background.
+    """
+    cloud_url = getattr(settings, 'CLOUD_WORKER_URL', None)
+    if cloud_url:
+        import httpx
+        def _forward():
+            try:
+                worker_url = cloud_url.rstrip('/') + '/api/v1/clips/generate'
+                headers = {"Authorization": f"Bearer {settings.AI_WORKER_API_TOKEN}"}
+                payload = {
+                    "video_id": video_id,
+                    "target_count": target_count,
+                    "burn_subtitles": burn_subtitles
+                }
+                with httpx.Client(timeout=30.0) as client:
+                    client.post(worker_url, json=payload, headers=headers)
+            except Exception as e:
+                import logging
+                logging.getLogger("uvicorn.error").error(f"Failed to forward job {job_id} to cloud worker: {e}")
+        background_tasks.add_task(_forward)
+    else:
+        background_tasks.add_task(
+            run_clipping_pipeline,
+            job_id=job_id,
+            video_id=video_id,
+            target_count=target_count,
+            burn_subtitles=burn_subtitles
+        )
+
 @router.post("/generate", response_model=JobResponse, status_code=status.HTTP_202_ACCEPTED)
 def start_clipping_generation(
     req: GenerateClipsRequest,
@@ -83,9 +122,9 @@ def start_clipping_generation(
     db.commit()
     db.refresh(job)
 
-    # Dispatch to background task
-    background_tasks.add_task(
-        run_clipping_pipeline,
+    # Dispatch to local background task or cloud worker
+    dispatch_clipping_job(
+        background_tasks=background_tasks,
         job_id=job.id,
         video_id=video.id,
         target_count=req.target_count,
@@ -115,8 +154,8 @@ def resume_clipping_generation(
     db.commit()
     db.refresh(job)
 
-    background_tasks.add_task(
-        run_clipping_pipeline,
+    dispatch_clipping_job(
+        background_tasks=background_tasks,
         job_id=job.id,
         video_id=job.video_id,
         target_count=job.clips_total_target or 10,

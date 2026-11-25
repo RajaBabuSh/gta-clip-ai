@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
@@ -40,6 +40,7 @@ class Settings(BaseSettings):
 
     # Security & Worker Tokens
     AI_WORKER_API_TOKEN: str = "gtaclip_gpu_secret_token_2026"
+    CLOUD_WORKER_URL: Optional[str] = os.getenv("CLOUD_WORKER_URL", None)
     REDIS_URL: str = "redis://127.0.0.1:6379/0"
 
     # Optional YouTube API Key

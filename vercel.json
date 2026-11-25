@@ -3,7 +3,11 @@
   "builds": [
     {
       "src": "backend/app/main.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "excludeFiles": "{storage/**,backend/storage/**,frontend/**,backups/**,*.mp4,*.wav,*.part,*.zip,*.m4a,*.sst,node_modules/**}"
+      }
     }
   ],
   "routes": [
