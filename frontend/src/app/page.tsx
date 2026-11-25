@@ -10,8 +10,8 @@ import { RecentVideosList } from "@/components/RecentVideosList";
 import { Film, Sparkles, RefreshCw, AlertCircle } from "lucide-react";
 
 export default function Home() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-  const storageBaseUrl = process.env.NEXT_PUBLIC_STORAGE_URL || "http://localhost:8000/storage";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" && window.location.hostname !== "localhost" ? `${window.location.origin}/api/v1` : "http://localhost:8000/api/v1");
+  const storageBaseUrl = process.env.NEXT_PUBLIC_STORAGE_URL || (typeof window !== "undefined" && window.location.hostname !== "localhost" ? `${window.location.origin}/storage` : "http://localhost:8000/storage");
 
   const [healthData, setHealthData] = useState<any | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
