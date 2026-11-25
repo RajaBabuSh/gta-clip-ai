@@ -4,7 +4,10 @@ import subprocess
 import shutil
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 from app.core.config import settings
 
 class AudioAnalysisService:

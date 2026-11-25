@@ -14,7 +14,6 @@ from app.models.job import ProcessingJob
 from app.models.clip import Clip
 from app.schemas.clip import ClipResponse
 from app.schemas.job import JobResponse
-from app.workers.clipping_worker import run_clipping_pipeline
 from app.services.ffmpeg_render import FFmpegRenderEngine
 from app.services.zip_service import ZipService
 
@@ -80,6 +79,7 @@ def dispatch_clipping_job(
                 logging.getLogger("uvicorn.error").error(f"Failed to forward job {job_id} to cloud worker: {e}")
         background_tasks.add_task(_forward)
     else:
+        from app.workers.clipping_worker import run_clipping_pipeline
         background_tasks.add_task(
             run_clipping_pipeline,
             job_id=job_id,
