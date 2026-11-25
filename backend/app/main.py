@@ -1,8 +1,18 @@
+import sys
+from pathlib import Path
+
+# Add backend directory to sys.path so 'app.*' imports work from anywhere (root, backend dir, Vercel, etc.)
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+if str(_BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(_BACKEND_DIR))
+_APP_DIR = Path(__file__).resolve().parent
+if str(_APP_DIR) not in sys.path:
+    sys.path.insert(0, str(_APP_DIR))
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 
 from app.core.config import settings
 from app.core.database import Base, engine
@@ -11,8 +21,12 @@ import app.models  # Ensure all SQLAlchemy models are registered
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables automatically on startup
-    Base.metadata.create_all(bind=engine)
+    # Create tables automatically on startup if database is accessible
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        import logging
+        logging.getLogger("uvicorn.error").warning(f"Database connection skipped during startup: {e}")
     # Ensure storage subdirectories exist
     settings.upload_dir
     settings.audio_dir

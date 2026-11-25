@@ -2,8 +2,12 @@ import os
 import re
 from pathlib import Path
 from typing import Dict, Any, List
-import whisper
-import torch
+try:
+    import whisper
+    import torch
+except ImportError:
+    whisper = None
+    torch = None
 from app.core.config import settings
 
 class WhisperTranscriptionService:
@@ -13,6 +17,8 @@ class WhisperTranscriptionService:
     @classmethod
     def get_model(cls, model_name: str = "tiny"):
         """Loads and caches the Whisper model in memory."""
+        if whisper is None or torch is None:
+            raise RuntimeError("Whisper or Torch is not installed in this environment.")
         device = "cuda" if torch.cuda.is_available() and settings.USE_NVIDIA_GPU else "cpu"
         if cls._model is None or cls._loaded_model_name != model_name:
             cls._model = whisper.load_model(model_name, device=device)
