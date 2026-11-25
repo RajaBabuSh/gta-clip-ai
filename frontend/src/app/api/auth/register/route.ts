@@ -56,9 +56,11 @@ export async function POST(req: NextRequest) {
       message: "Account created successfully! Welcome to GTA Clip AI.",
     });
 
+    const isSecure = req.nextUrl.protocol === "https:" || req.headers.get("x-forwarded-proto") === "https";
+
     response.cookies.set("gtaclip_session", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
