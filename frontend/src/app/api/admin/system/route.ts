@@ -10,13 +10,13 @@ export async function GET() {
     }
 
     const settings = await query<any[]>(
-      "SELECT setting_key, setting_value, setting_group, description, is_sensitive FROM system_settings ORDER BY setting_group, setting_key"
+      "SELECT setting_key, setting_value, setting_group, description, is_public FROM system_settings ORDER BY setting_group, setting_key"
     );
 
-    // Redact sensitive values like secrets
+    // Redact sensitive non-public values like API keys and secrets
     const sanitized = (settings || []).map((s) => ({
       ...s,
-      setting_value: s.is_sensitive && s.setting_value ? "••••••••••••" : s.setting_value,
+      setting_value: !s.is_public && s.setting_value ? "••••••••••••" : s.setting_value,
     }));
 
     return NextResponse.json(sanitized);

@@ -60,10 +60,10 @@ export async function POST(req: NextRequest) {
       // Create record directly in database queue
       const jobId = crypto.randomUUID();
       await query(
-        "INSERT INTO processing_jobs (id, video_id, status, progress, total_clips_expected, created_at, updated_at) VALUES (?, ?, 'QUEUED', 0, ?, NOW(), NOW())",
+        "INSERT INTO processing_jobs (id, video_id, status, progress_percentage, clips_total_target, created_at, updated_at) VALUES (?, ?, 'QUEUED', 0, ?, NOW(), NOW())",
         [jobId, videoId, targetClips]
       );
-      jobData = { id: jobId, video_id: videoId, status: "QUEUED", progress: 0 };
+      jobData = { id: jobId, video_id: videoId, status: "QUEUED", progress_percentage: 0 };
     }
 
     return NextResponse.json({
