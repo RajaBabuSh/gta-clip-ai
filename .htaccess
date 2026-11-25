@@ -1,0 +1,11 @@
+# EiziClip Apache Configuration
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Redirect any nested/duplicated New folder paths back to clean /New%20folder/
+RewriteCond %{REQUEST_URI} ^/new(?:\s|%20)folder/+(?:new(?:\s|%20)folder/+)+(.*)$ [NC]
+RewriteRule ^ /New\%20folder/%1 [R=308,L,NE]
+
+# Match relative subpaths inside this directory context
+RewriteRule ^(?:new(?:\s|%20)folder/+)+(.*)$ /New\%20folder/$1 [R=308,L,NC,NE]
+</IfModule>
