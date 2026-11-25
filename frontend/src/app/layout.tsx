@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ClientProviders } from "@/components/ClientProviders";
 
 export const metadata: Metadata = {
   title: "GTA CLIP AI - AI Gaming Highlights & Shorts Studio",
@@ -13,8 +14,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-zinc-950 text-zinc-100 antialiased selection:bg-rose-500 selection:text-white">
-        {children}
+      <body className="bg-zinc-950 text-zinc-100 antialiased selection:bg-purple-600 selection:text-white">
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

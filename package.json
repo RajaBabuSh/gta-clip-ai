@@ -1,0 +1,15 @@
+{
+  "name": "gta-clip-ai",
+  "version": "2.0.0",
+  "private": true,
+  "description": "GTA Clip AI - Automated AI Video Clipping & Viral Shorts SaaS Platform",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix frontend run start",
+    "lint": "npm --prefix frontend run lint"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}
