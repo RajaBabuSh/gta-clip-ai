@@ -27,11 +27,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         import logging
         logging.getLogger("uvicorn.error").warning(f"Database connection skipped during startup: {e}")
-    # Ensure storage subdirectories exist
-    settings.upload_dir
-    settings.audio_dir
-    settings.subtitles_dir
-    settings.output_dir
+    # Ensure storage subdirectories exist if writable
+    try:
+        settings.upload_dir
+        settings.audio_dir
+        settings.subtitles_dir
+        settings.output_dir
+    except Exception as e:
+        import logging
+        logging.getLogger("uvicorn.error").warning(f"Storage directories init skipped: {e}")
     yield
 
 app = FastAPI(
@@ -50,10 +54,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount local storage as static files for media playback/previews
-storage_path = Path(settings.STORAGE_DIR)
-storage_path.mkdir(parents=True, exist_ok=True)
-app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
+# Mount local storage as static files for media playback/previews if directory exists
+try:
+    storage_path = settings.storage_path
+    if storage_path.exists():
+        app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
+except Exception as e:
+    import logging
+    logging.getLogger("uvicorn.error").warning(f"Static /storage mount skipped: {e}")
 
 # Include API v1 Router
 app.include_router(api_router, prefix=settings.API_V1_STR)

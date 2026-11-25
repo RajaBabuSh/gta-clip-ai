@@ -63,18 +63,32 @@ class Settings(BaseSettings):
 
     @property
     def storage_path(self) -> Path:
-        raw = Path(self.STORAGE_DIR)
-        if raw.is_absolute():
-            p = raw
+        # On Vercel / serverless (read-only filesystem), fallback to /tmp/storage
+        if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+            p = Path("/tmp/storage")
         else:
-            p = (BASE_DIR / self.STORAGE_DIR).resolve()
-        p.mkdir(parents=True, exist_ok=True)
+            raw = Path(self.STORAGE_DIR)
+            if raw.is_absolute():
+                p = raw
+            else:
+                p = (BASE_DIR / self.STORAGE_DIR).resolve()
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            p = Path("/tmp/storage")
+            try:
+                p.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                pass
         return p
 
     @property
     def upload_dir(self) -> Path:
         p = self.storage_path / "uploads"
-        p.mkdir(parents=True, exist_ok=True)
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
         return p
 
     @property
@@ -84,19 +98,28 @@ class Settings(BaseSettings):
     @property
     def audio_dir(self) -> Path:
         p = self.storage_path / "audio"
-        p.mkdir(parents=True, exist_ok=True)
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
         return p
 
     @property
     def subtitles_dir(self) -> Path:
         p = self.storage_path / "subtitles"
-        p.mkdir(parents=True, exist_ok=True)
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
         return p
 
     @property
     def output_dir(self) -> Path:
         p = self.storage_path / "output"
-        p.mkdir(parents=True, exist_ok=True)
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
         return p
 
 settings = Settings()

@@ -1,7 +1,10 @@
 import subprocess
 import shutil
 import logging
-import torch
+try:
+    import torch
+except ImportError:
+    torch = None
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -70,10 +73,11 @@ class HardwareDetector:
     @classmethod
     def get_whisper_device(cls) -> str:
         """Determines optimal Whisper compute device (cuda or cpu)."""
-        if settings.WHISPER_DEVICE == "cuda" and torch.cuda.is_available():
+        cuda_avail = bool(torch and hasattr(torch, "cuda") and torch.cuda.is_available())
+        if settings.WHISPER_DEVICE == "cuda" and cuda_avail:
             return "cuda"
         if settings.WHISPER_DEVICE == "auto":
-            return "cuda" if torch.cuda.is_available() else "cpu"
+            return "cuda" if cuda_avail else "cpu"
         return "cpu"
 
     @classmethod
@@ -81,7 +85,7 @@ class HardwareDetector:
         """Comprehensive hardware and toolchain diagnostic."""
         gpu_info = cls.check_nvidia_smi()
         nvenc_ok = cls.check_nvenc_encoder()
-        torch_cuda = torch.cuda.is_available()
+        torch_cuda = bool(torch and hasattr(torch, "cuda") and torch.cuda.is_available())
         ffmpeg_bin = shutil.which("ffmpeg")
         ffprobe_bin = shutil.which("ffprobe")
 
